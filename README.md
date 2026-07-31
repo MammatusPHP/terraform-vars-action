@@ -1,2 +1,3 @@
 # terraform-vars-action
-GitHub action getting you the Varsyou need for your TerraForm applies/plans
+
+GitHub action getting you the tfvars you need for your Terraform applies/plans.

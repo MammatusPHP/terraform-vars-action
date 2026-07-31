@@ -1,0 +1,30 @@
+name: 'MammatusPHP Terraform Vars'
+description: 'GitHub action getting you the tfvars you need for your Terraform applies/plans'
+branding:
+  icon: 'sunrise'
+  color: 'yellow'
+inputs:
+  workingDirectory:
+    description: Directory containing the Mammatus app composer.json
+    required: false
+    default: ''
+outputs:
+  terraform-vars:
+    description: HCL tfvars lines from mammatus-terraform-vars
+    value: ${{ steps.mammatus-terraform-vars.outputs.terraform-vars }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - uses: WyriHaximus/github-action-composer-php-versions-in-range@v1
+      id: php-version
+    - name: Generate Mammatus tfvars for Terraform
+      id: mammatus-terraform-vars
+      shell: bash
+      run: |
+        docker run --rm -i -v "`pwd`:`pwd`" -w "`pwd`" ghcr.io/wyrihaximusnet/php:${{ steps.php-version.outputs.lowest }}-zts-alpine-dev composer install --no-scripts
+        TERRAFORM_VARS=$(docker run --rm -i -v "`pwd`:`pwd`" -w "`pwd`" ghcr.io/wyrihaximusnet/php:${{ steps.php-version.outputs.lowest }}-zts-alpine-dev php ./vendor/bin/mammatus-terraform-tfvars)
+        DELIMITED="$(openssl rand -hex 8)"
+        echo "terraform-vars<<${DELIMITED}" >> "${GITHUB_OUTPUT}"
+        echo "${TERRAFORM_VARS}" >> "${GITHUB_OUTPUT}"
+        echo "${DELIMITED}" >> "${GITHUB_OUTPUT}"
